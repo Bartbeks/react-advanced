@@ -14,14 +14,10 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <EventsPage />,
-        // loader: postListLoader,
       },
       {
         path: "/event/:eventId",
         element: <EventPage />,
-
-        // loader: postLoader,
-        // action: addComment,
       },
     ],
   },

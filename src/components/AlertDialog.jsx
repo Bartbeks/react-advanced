@@ -32,13 +32,11 @@ export const Warning = ({ handleDelete, id }) => {
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Customer
+              Delete Event
             </AlertDialogHeader>
-
             <AlertDialogBody>
-              Are you sure? You can't undo this action afterwards.
+              <p> ${`Are you sure? You can't undo this action afterwards.`}</p>
             </AlertDialogBody>
-
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={onClose}>
                 Cancel

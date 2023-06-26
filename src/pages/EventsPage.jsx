@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useContext } from "react";
 import { CatsContext } from "../store/user-context";
 
-import { Heading, Container, Flex } from "@chakra-ui/react";
+import { Flex, Input, Select } from "@chakra-ui/react";
 import { Eventdetails } from "../components/EventDetail";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -13,6 +13,7 @@ import { addEvent, deleteEvent } from "../api/eventApi";
 export const EventsPage = () => {
   const [events, setEvents] = useState([]);
   const [eventCategories, setEventCategories] = useState({});
+  // eslint-disable-next-line no-unused-vars
   const [searchField, setSearchField] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [textInput, setTextInput] = useState("");
@@ -46,7 +47,7 @@ export const EventsPage = () => {
   };
 
   const deleteEventHandler = async (id) => {
-    const data = await deleteEvent(id);
+    await deleteEvent(id);
     setEvents((prevEvents) => prevEvents.filter((event) => event.id !== id));
     setEventCategories((prevEventCategories) => {
       const updatedCategories = { ...prevEventCategories };
@@ -90,31 +91,51 @@ export const EventsPage = () => {
 
   return (
     <>
-      <Heading>List of events</Heading>
-      <input
-        type="text"
-        placeholder="Enter search text..."
-        value={textInput}
-        onChange={(e) => setTextInput(e.target.value)}
-      />
+      <Flex justifyContent="center" mt="15px">
+        <Flex width={"50vw"}>
+          <Input
+            type="text"
+            colorScheme="facebook"
+            placeholder="Search events ..."
+            value={textInput}
+            onChange={(e) => setTextInput(e.target.value)}
+          />
+        </Flex>
+      </Flex>
 
-      <select
-        value={selectedCategory}
-        onChange={(e) => setSelectedCategory(e.target.value)}
-      >
-        <option value="">Select category...</option>
-        <option value="">All</option>
-        {categories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.name}
-          </option>
-        ))}
-      </select>
+      <Flex justifyContent="center" mt="15px">
+        <Flex width={"50vw"}>
+          <Select
+            colorScheme="facebook"
+            variant="filled"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+          >
+            <option value="">Select category...</option>
+            <option value="">All</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </Select>
+        </Flex>
+      </Flex>
 
-      <Container>
-        <h2>Event List</h2>
-        <Flex flexDirection="column" gap={"10px"}>
-          <NewEvent handleOpenAddModal={handleOpenAddModal} />
+      <Flex>
+        <Flex
+          m={4}
+          flexDirection="column"
+          gap={"10px"}
+          width={"100vw"}
+          alignItems="center "
+          justifyContent="center"
+        >
+          <Flex justifyContent="flex-end" width={"50vw"}>
+            <Flex>
+              <NewEvent handleOpenAddModal={handleOpenAddModal} />
+            </Flex>
+          </Flex>
           {filteredEvents.map((event) => (
             <Eventdetails
               key={event.id}
@@ -124,10 +145,7 @@ export const EventsPage = () => {
             ></Eventdetails>
           ))}
         </Flex>
-        {categories.map((category) => (
-          <span key={category.id}>{category.name}</span>
-        ))}
-      </Container>
+      </Flex>
       {isAddModalOpen && (
         <AddEventModal
           // event={event}

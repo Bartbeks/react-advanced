@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
-import { Navigation } from "./Navigation";
-import { Box } from "@chakra-ui/react";
 import { fetchUsers } from "../api/eventApi";
 import { fetchCategories } from "../api/eventApi";
 import { UsersContext, CatsContext } from "../store/user-context";
+import { Header } from "../components/Header";
+import { Flex } from "@chakra-ui/react";
 
 export const Root = () => {
   const [users, setUsers] = useState([]);
@@ -37,10 +37,10 @@ export const Root = () => {
   return (
     <CatsContext.Provider value={{ categories: categories }}>
       <UsersContext.Provider value={{ users: users }}>
-        <Box>
-          <Navigation />
+        <Flex justifyContent="center" flexDirection="column">
+          <Header></Header>
           <Outlet />
-        </Box>
+        </Flex>
       </UsersContext.Provider>
     </CatsContext.Provider>
   );

@@ -3,15 +3,11 @@ import { UsersContext } from "../store/user-context";
 import { toast } from "react-toastify";
 
 import {
-  ButtonGroup,
-  Heading,
   Box,
-  Image,
   Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
   Button,
@@ -19,6 +15,11 @@ import {
   FormLabel,
   Input,
   Select,
+  Checkbox,
+  CheckboxGroup,
+  VStack,
+  HStack,
+  Spacer,
 } from "@chakra-ui/react";
 
 const AddEventModal = ({ closeModal, isModalOpen, handleAdd }) => {
@@ -28,6 +29,8 @@ const AddEventModal = ({ closeModal, isModalOpen, handleAdd }) => {
   };
 
   const [uniqueId, setUniqueId] = useState(radomId());
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedAtendend, setselectedAtendend] = useState([]);
 
   useEffect(() => {
     setUniqueId(radomId());
@@ -35,7 +38,6 @@ const AddEventModal = ({ closeModal, isModalOpen, handleAdd }) => {
 
   const idRef = useRef(uniqueId);
   const createdByRef = useRef(null);
-  const attendByRef = useRef([]);
   const titleRef = useRef(null);
   const descriptionRef = useRef(null);
   const imageRef = useRef(null);
@@ -45,12 +47,13 @@ const AddEventModal = ({ closeModal, isModalOpen, handleAdd }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     const id = parseInt(idRef.current.value);
     const createdBy = parseInt(createdByRef.current.value);
-    const attendedBy = Array.from(attendByRef.current.options)
-      .filter((option) => option.selected)
-      .map((option) => parseInt(option.value));
-    // const attendedBy = parseInt(attendedByRef.current);
+    const attendedBy = selectedAtendend.map((attended) => parseInt(attended));
+    const categoryIds = selectedCategories.map((attended) =>
+      parseInt(attended)
+    );
     const title = titleRef.current.value;
     const description = descriptionRef.current.value;
     const image = imageRef.current.value;
@@ -58,29 +61,72 @@ const AddEventModal = ({ closeModal, isModalOpen, handleAdd }) => {
     const startTime = startDateRef.current.value;
     const endTime = endDateRef.current.value;
 
-    const newEvent = {
-      id,
-      createdBy,
-      title,
-      description,
-      image,
-      categoryIds: [1, 2],
-      attendedBy,
-      location,
-      startTime,
-      endTime,
-    };
+    // Validate start date and end date
+    const currentDateTime = new Date().toISOString();
+    if (
+      startTime > currentDateTime &&
+      endTime > currentDateTime &&
+      endTime > startTime
+    ) {
+      const newEvent = {
+        id,
+        createdBy,
+        title,
+        description,
+        image,
+        categoryIds,
+        attendedBy,
+        location,
+        startTime,
+        endTime,
+      };
 
-    handleAdd(newEvent);
-    closeModal(); // Close the modal after updating
-    toast.success("Event successfully added");
+      handleAdd(newEvent);
+      closeModal(); // Close the modal after updating
+      toast.success("Event successfully added");
+    } else {
+      if (startTime <= currentDateTime || endTime <= currentDateTime) {
+        toast.error("Please select a future start date and end date");
+      } else {
+        toast.error("End date should be greater than start date");
+      }
+    }
+  };
+
+  const handleCategoryChange = (value, checked) => {
+    const intValue = parseInt(value);
+
+    if (checked) {
+      setSelectedCategories((prevSelectedCategories) => [
+        ...prevSelectedCategories,
+        intValue,
+      ]);
+    } else {
+      setSelectedCategories((prevSelectedCategories) =>
+        prevSelectedCategories.filter((category) => category !== intValue)
+      );
+    }
+  };
+  const handleAttendByChange = (value, checked) => {
+    const intValue = parseInt(value);
+
+    if (checked) {
+      setselectedAtendend((prevselectedAtendend) => [
+        ...prevselectedAtendend,
+        intValue,
+      ]);
+    } else {
+      setselectedAtendend((prevselectedAtendend) =>
+        prevselectedAtendend.filter((category) => category !== intValue)
+      );
+    }
   };
 
   return (
     <>
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent p={10}>
           <ModalHeader>Add Events</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -94,57 +140,84 @@ const AddEventModal = ({ closeModal, isModalOpen, handleAdd }) => {
                   value={parseInt(uniqueId)}
                   readOnly
                 />
-                <Select
-                  ref={createdByRef}
-                  placeholder="Select creator"
-                  required
-                >
-                  {users.map((user) => {
-                    return (
-                      <option key={user.id} type="number" value={user.id}>
-                        {user.name}
-                      </option>
-                    );
-                  })}
-                </Select>
-                <Select
-                  ref={attendByRef}
-                  placeholder="attend by"
-                  required
-                  multiple
-                >
-                  {users.map((user) => {
-                    return (
-                      <option key={user.id} type="number" value={user.id}>
-                        {user.name}
-                      </option>
-                    );
-                  })}
-                </Select>
                 <FormLabel htmlFor="title">Title</FormLabel>
                 <Input
                   type="text"
                   id="title"
                   ref={titleRef}
-                  defaultValue="The tinyhouse maker"
+                  defaultValue=""
                   required
                 />
+                <FormLabel htmlFor="createdBy">Choose Creator</FormLabel>
+                <Select
+                  id="createdBy"
+                  ref={createdByRef}
+                  placeholder="Select creator"
+                  required
+                >
+                  {users.map((user) => (
+                    <option key={user.id} type="number" value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+                </Select>
+                <FormLabel htmlFor="categoryIds" mb={"15px"}>
+                  Choose Category
+                </FormLabel>
+                <CheckboxGroup id="categoryIds" required>
+                  <VStack align="start">
+                    <Checkbox
+                      value="1"
+                      onChange={(e) =>
+                        handleCategoryChange(e.target.value, e.target.checked)
+                      }
+                      isChecked={selectedCategories.includes(1)}
+                    >
+                      Sport
+                    </Checkbox>
+                    <Checkbox
+                      value="2"
+                      onChange={(e) =>
+                        handleCategoryChange(e.target.value, e.target.checked)
+                      }
+                      isChecked={selectedCategories.includes(2)}
+                    >
+                      Games
+                    </Checkbox>
+                  </VStack>
+                </CheckboxGroup>
+                <FormLabel htmlFor="attendedBy" mb={"15px"}>
+                  Attended by
+                </FormLabel>
+                <CheckboxGroup id="attendedBy" value={selectedAtendend}>
+                  <VStack align="start">
+                    {users.map((user) => (
+                      <Checkbox
+                        key={user.id}
+                        value={user.id}
+                        onChange={(e) =>
+                          handleAttendByChange(e.target.value, e.target.checked)
+                        }
+                        isChecked={selectedAtendend.includes(user.id)}
+                      >
+                        {user.name}
+                      </Checkbox>
+                    ))}
+
+                    {/* Add more checkboxes as needed */}
+                  </VStack>
+                </CheckboxGroup>
                 <FormLabel htmlFor="description">Description</FormLabel>
                 <Input
                   type="text"
                   id="description"
                   ref={descriptionRef}
-                  defaultValue="elke Zondag maar kan ook op een andere dag zijn"
+                  defaultValue=""
                   required
                 />
-                <FormLabel htmlFor="image">image url</FormLabel>
-                <Input
-                  type="text"
-                  id="image"
-                  ref={imageRef}
-                  defaultValue="https://media.licdn.com/dms/image/C4E03AQGx6nDXBtKgtw/profile-displayphoto-shrink_800_800/0/1586086647292?e=1692835200&v=beta&t=GUPNSeWLaQZjh-crj87nUn6oLPV0AoKlWwFVdl0Cv8c"
-                />
-                <FormLabel htmlFor="location">location</FormLabel>
+                <FormLabel htmlFor="image">Image URL</FormLabel>
+                <Input type="text" id="image" ref={imageRef} defaultValue="" />
+                <FormLabel htmlFor="location">Location</FormLabel>
                 <Input
                   type="text"
                   id="location"
@@ -152,7 +225,7 @@ const AddEventModal = ({ closeModal, isModalOpen, handleAdd }) => {
                   defaultValue=""
                   required
                 />
-                <FormLabel htmlFor="startDate">start</FormLabel>
+                <FormLabel htmlFor="startDate">Start Date</FormLabel>
                 <Input
                   type="datetime-local"
                   id="startDate"
@@ -160,7 +233,7 @@ const AddEventModal = ({ closeModal, isModalOpen, handleAdd }) => {
                   defaultValue=""
                   required
                 />
-                <FormLabel htmlFor="endDate">End</FormLabel>
+                <FormLabel htmlFor="endDate">End Date</FormLabel>
                 <Input
                   type="datetime-local"
                   id="endDate"
@@ -169,17 +242,17 @@ const AddEventModal = ({ closeModal, isModalOpen, handleAdd }) => {
                   required
                 />
                 {/* Add more input fields as needed */}
-                <Button type="submit">Add event</Button>
+                <Box width={"100%"} pt={"15px"}>
+                  <HStack align="end">
+                    <Spacer />
+                    <Button type="submit" colorScheme="blue">
+                      Add Event
+                    </Button>
+                  </HStack>
+                </Box>
               </FormControl>
             </form>
           </ModalBody>
-
-          <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={closeModal}>
-              Close
-            </Button>
-            <Button variant="ghost">Cancel</Button>
-          </ModalFooter>
         </ModalContent>
       </Modal>
     </>
